@@ -31,7 +31,7 @@ fn setup(
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(asset_server.load(PLAYER_A_SPRITE).into()),
         transform: Transform {
-            translation: Vec3::new(0.0, bottom + 30.0, 10.0),
+            translation: Vec3::new(0.0, bottom + 25.0, 10.0),
             scale: Vec3::new(0.5, 0.5, 1.0),
             ..Default::default()
         },
