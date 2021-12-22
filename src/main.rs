@@ -1,26 +1,31 @@
 use bevy::prelude::*;
 
 const PLAYER_A_SPRITE: &str = "player_a.png";
+const LASER_A_SPRITE: &str = "laser_a.png";
 const TIME_STEP: f32 = 1.0 / 60.0;
+const WINDOW_HEIGHT: f32 = 600.0;
+const WINDOW_WIDTH: f32 = 600.0;
 
 // ### Resources ###
 
 struct Materials {
-    player_material: Handle<ColorMaterial>,
+    player: Handle<ColorMaterial>,
+    laser: Handle<ColorMaterial>,
 }
 
 // ### Components ###
 
 struct Player;
-struct PlayerSpeed(f32);
+struct Speed(f32);
+struct Laser;
 
 fn main() {
     App::build()
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.04)))
         .insert_resource(WindowDescriptor {
             title: "Bevy Basics: Space Invaders!".to_owned(),
-            width: 600.0,
-            height: 600.0,
+            width: WINDOW_WIDTH,
+            height: WINDOW_HEIGHT,
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
@@ -30,6 +35,8 @@ fn main() {
             SystemStage::single(player_spawn.system()),
         )
         .add_system(player_movement.system())
+        .add_system(player_fire.system())
+        .add_system(laser_movement.system())
         .run();
 }
 
@@ -46,15 +53,16 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     commands.insert_resource(Materials {
-        player_material: materials.add(asset_server.load(PLAYER_A_SPRITE).into()),
+        player: materials.add(asset_server.load(PLAYER_A_SPRITE).into()),
+        laser: materials.add(asset_server.load(LASER_A_SPRITE).into()),
     });
 
     window.set_position(IVec2::new(750, 200));
 }
 
 fn player_spawn(mut commands: Commands, materials: Res<Materials>) {
-    let bottom = -300.0;
-    let material = materials.player_material.clone();
+    let bottom = -WINDOW_HEIGHT / 2.0;
+    let material = materials.player.clone();
     let transform = Transform {
         translation: Vec3::new(0.0, bottom + 25.0, 10.0),
         scale: Vec3::new(0.5, 0.5, 1.0),
@@ -67,21 +75,60 @@ fn player_spawn(mut commands: Commands, materials: Res<Materials>) {
             ..Default::default()
         })
         .insert(Player)
-        .insert(PlayerSpeed(500.0));
+        .insert(Speed(500.0));
 }
 
 fn player_movement(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&PlayerSpeed, &mut Transform, With<Player>)>,
+    keyboard: Res<Input<KeyCode>>,
+    mut query: Query<(&Speed, &mut Transform, With<Player>)>,
 ) {
-    if let Ok((PlayerSpeed(speed), mut transform, _)) = query.single_mut() {
-        let dir = if keyboard_input.pressed(KeyCode::Left) {
+    if let Ok((Speed(speed), mut transform, _)) = query.single_mut() {
+        let dir = if keyboard.pressed(KeyCode::Left) {
             -1.0
-        } else if keyboard_input.pressed(KeyCode::Right) {
+        } else if keyboard.pressed(KeyCode::Right) {
             1.0
         } else {
             0.0
         };
         transform.translation.x += dir * speed * TIME_STEP;
+    }
+}
+
+fn player_fire(
+    mut commands: Commands,
+    keyboard: Res<Input<KeyCode>>,
+    materials: Res<Materials>,
+    query: Query<&Transform, With<Player>>,
+) {
+    if let Ok(&player_transform) = query.single() {
+        if keyboard.pressed(KeyCode::Space) {
+            let x = player_transform.translation.x;
+            let y = player_transform.translation.y;
+            commands
+                .spawn_bundle(SpriteBundle {
+                    material: materials.laser.clone(),
+                    transform: Transform {
+                        translation: Vec3::new(x, y, 0.0),
+                        scale: Vec3::new(0.5, 0.5, 1.0),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .insert(Laser)
+                .insert(Speed(500.0));
+        }
+    }
+}
+
+fn laser_movement(
+    mut commands: Commands,
+    mut query: Query<(Entity, &Speed, &mut Transform, With<Laser>)>,
+) {
+    for (laser_entity, Speed(speed), mut laser_transform, _) in query.iter_mut() {
+        let translation = &mut laser_transform.translation;
+        translation.y += speed * TIME_STEP;
+        if translation.y > WINDOW_HEIGHT {
+            commands.entity(laser_entity).despawn();
+        }
     }
 }
