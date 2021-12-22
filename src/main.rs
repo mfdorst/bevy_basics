@@ -16,6 +16,7 @@ struct Materials {
 // ### Components ###
 
 struct Player;
+struct PlayerReadyFire(bool);
 struct Speed(f32);
 struct Laser;
 
@@ -75,7 +76,8 @@ fn player_spawn(mut commands: Commands, materials: Res<Materials>) {
             ..Default::default()
         })
         .insert(Player)
-        .insert(Speed(500.0));
+        .insert(Speed(500.0))
+        .insert(PlayerReadyFire(true));
 }
 
 fn player_movement(
@@ -98,10 +100,11 @@ fn player_fire(
     mut commands: Commands,
     keyboard: Res<Input<KeyCode>>,
     materials: Res<Materials>,
-    query: Query<&Transform, With<Player>>,
+    mut query: Query<(&Transform, &mut PlayerReadyFire, With<Player>)>,
 ) {
-    if let Ok(&player_transform) = query.single() {
-        if keyboard.pressed(KeyCode::Space) {
+    if let Ok((&player_transform, mut ready_fire, _)) = query.single_mut() {
+        let PlayerReadyFire(ref mut ready_fire) = *ready_fire;
+        if *ready_fire && keyboard.pressed(KeyCode::Space) {
             let x = player_transform.translation.x;
             let y = player_transform.translation.y;
             commands
@@ -116,6 +119,10 @@ fn player_fire(
                 })
                 .insert(Laser)
                 .insert(Speed(500.0));
+            *ready_fire = false;
+        }
+        if keyboard.just_released(KeyCode::Space) {
+            *ready_fire = true;
         }
     }
 }
