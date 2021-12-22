@@ -1,8 +1,8 @@
-use super::components::Enemy;
+use super::components::{Enemy, Laser};
 use super::consts::*;
 use super::resources::{ActiveEnemies, Materials};
-use bevy::core::FixedTimestep;
 use bevy::prelude::*;
+use bevy::sprite::collide_aabb::collide;
 use rand::thread_rng;
 use rand::Rng;
 
@@ -10,11 +10,9 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app_builder: &mut AppBuilder) {
-        app_builder.add_system_set(
-            SystemSet::new()
-                .with_run_criteria(FixedTimestep::step(1.0))
-                .with_system(enemy_spawn.system()),
-        );
+        app_builder
+            .add_system(enemy_spawn.system())
+            .add_system(laser_hit_enemy.system());
     }
 }
 
@@ -43,5 +41,31 @@ fn enemy_spawn(
             .insert(Enemy);
 
         *active_enemies += 1;
+    }
+}
+
+fn laser_hit_enemy(
+    mut commands: Commands,
+    mut laser_query: Query<(Entity, &Transform, &Sprite, With<Laser>)>,
+    mut enemy_query: Query<(Entity, &Transform, &Sprite, With<Enemy>)>,
+    mut active_enemies: ResMut<ActiveEnemies>,
+) {
+    for (laser_entity, laser_transform, laser_sprite, _) in laser_query.iter_mut() {
+        for (enemy_entity, enemy_transform, enemy_sprite, _) in enemy_query.iter_mut() {
+            let laser_scale = Vec2::from(laser_transform.scale);
+            let enemy_scale = Vec2::from(enemy_transform.scale);
+            let collision = collide(
+                laser_transform.translation,
+                laser_sprite.size * laser_scale,
+                enemy_transform.translation,
+                enemy_sprite.size * enemy_scale,
+            );
+
+            if let Some(_) = collision {
+                commands.entity(enemy_entity).despawn();
+                active_enemies.0 -= 1;
+                commands.entity(laser_entity).despawn();
+            }
+        }
     }
 }
