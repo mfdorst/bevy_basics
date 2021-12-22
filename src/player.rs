@@ -1,5 +1,6 @@
+use super::components::{Laser, Player, PlayerReadyFire, Speed};
 use super::consts::*;
-use crate::{Laser, Materials, Player, PlayerReadyFire, Speed};
+use super::resources::Materials;
 use bevy::prelude::*;
 
 pub struct PlayerPlugin;
@@ -12,8 +13,7 @@ impl Plugin for PlayerPlugin {
                 SystemStage::single(player_spawn.system()),
             )
             .add_system(player_movement.system())
-            .add_system(player_fire.system())
-            .add_system(laser_movement.system());
+            .add_system(player_fire.system());
     }
 }
 
@@ -84,19 +84,6 @@ fn player_fire(
         }
         if keyboard.just_released(KeyCode::Space) {
             *ready_fire = true;
-        }
-    }
-}
-
-fn laser_movement(
-    mut commands: Commands,
-    mut query: Query<(Entity, &Speed, &mut Transform, With<Laser>)>,
-) {
-    for (laser_entity, Speed(speed), mut laser_transform, _) in query.iter_mut() {
-        let translation = &mut laser_transform.translation;
-        translation.y += speed * TIME_STEP;
-        if translation.y > WINDOW_HEIGHT {
-            commands.entity(laser_entity).despawn();
         }
     }
 }

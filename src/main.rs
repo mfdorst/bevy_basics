@@ -1,24 +1,12 @@
-use bevy::prelude::*;
-
+mod components;
 mod consts;
+mod laser;
 mod player;
+mod resources;
 
+use bevy::prelude::*;
 use consts::*;
-use player::PlayerPlugin;
-
-// ### Resources ###
-
-struct Materials {
-    player: Handle<ColorMaterial>,
-    laser: Handle<ColorMaterial>,
-}
-
-// ### Components ###
-
-struct Player;
-struct PlayerReadyFire(bool);
-struct Speed(f32);
-struct Laser;
+use resources::Materials;
 
 fn main() {
     App::build()
@@ -30,12 +18,11 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(PlayerPlugin)
+        .add_plugin(player::PlayerPlugin)
+        .add_plugin(laser::LaserPlugin)
         .add_startup_system(setup.system())
         .run();
 }
-
-// ## Systems ##
 
 fn setup(
     mut commands: Commands,
