@@ -107,17 +107,23 @@ fn player_fire(
         if *ready_fire && keyboard.pressed(KeyCode::Space) {
             let x = player_transform.translation.x;
             let y = player_transform.translation.y;
-            commands
-                .spawn_bundle(SpriteBundle {
-                    material: materials.laser.clone(),
-                    transform: Transform {
-                        translation: Vec3::new(x, y + 15.0, 0.0),
+            let mut spawn_laser = |x_offset| {
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        material: materials.laser.clone(),
+                        transform: Transform {
+                            translation: Vec3::new(x + x_offset, y + 20.0, 0.0),
+                            scale: Vec3::new(0.5, 0.5, 1.0),
+                            ..Default::default()
+                        },
                         ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .insert(Laser)
-                .insert(Speed(500.0));
+                    })
+                    .insert(Laser)
+                    .insert(Speed(500.0));
+            };
+            let x_offset = 144.0 / 4.0 - 5.0;
+            spawn_laser(x_offset);
+            spawn_laser(-x_offset);
             *ready_fire = false;
         }
         if keyboard.just_released(KeyCode::Space) {
