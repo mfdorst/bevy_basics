@@ -1,4 +1,4 @@
-use super::components::{Enemy, Laser};
+use super::components::{Enemy, ExplosionToSpawn, Laser};
 use super::consts::*;
 use super::resources::{ActiveEnemies, Materials};
 use bevy::prelude::*;
@@ -65,6 +65,10 @@ fn laser_hit_enemy(
                 commands.entity(enemy_entity).despawn();
                 active_enemies.0 -= 1;
                 commands.entity(laser_entity).despawn();
+
+                commands
+                    .spawn()
+                    .insert(ExplosionToSpawn(enemy_transform.translation.clone()));
             }
         }
     }
