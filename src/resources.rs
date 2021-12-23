@@ -1,5 +1,7 @@
 use bevy::prelude::*;
+use derive_more::{Deref, DerefMut};
 
+#[derive(Deref, DerefMut)]
 pub struct ActiveEnemies(pub u32);
 
 pub struct Materials {

@@ -22,7 +22,7 @@ fn explosion_to_spawn(
             .spawn_bundle(SpriteSheetBundle {
                 texture_atlas: materials.explosion.clone(),
                 transform: Transform {
-                    translation: explosion_to_spawn.0,
+                    translation: **explosion_to_spawn,
                     ..Default::default()
                 },
                 ..Default::default()

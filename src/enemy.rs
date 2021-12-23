@@ -70,14 +70,14 @@ fn laser_hit_enemy(
             );
             if let Some(_) = collision {
                 commands.entity(enemy_entity).despawn();
-                active_enemies.0 -= 1;
+                **active_enemies -= 1;
                 commands.entity(laser_entity).despawn();
 
                 commands
                     .spawn()
                     .insert(ExplosionToSpawn(enemy_transform.translation.clone()));
 
-                if active_enemies.0 == 0 {
+                if **active_enemies == 0 {
                     return;
                 }
             }
