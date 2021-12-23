@@ -2,7 +2,7 @@ use super::components::{
     EnemyLaser, ExplosionToSpawn, Player, PlayerLaser, PlayerReadyFire, Speed,
 };
 use super::consts::*;
-use super::resources::Materials;
+use super::resources::{Materials, PlayerState};
 use bevy::prelude::*;
 use bevy::sprite::collide_aabb::collide;
 
@@ -15,8 +15,10 @@ impl Plugin for PlayerPlugin {
                 "game_setup_actors",
                 SystemStage::single(player_spawn.system()),
             )
+            .insert_resource(PlayerState::default())
             .add_system(player_movement.system())
             .add_system(laser_hit_player.system())
+            .add_system(player_respawn.system())
             .add_system(player_fire.system());
     }
 }
@@ -58,6 +60,8 @@ fn player_movement(
 
 fn laser_hit_player(
     mut commands: Commands,
+    mut player_state: ResMut<PlayerState>,
+    time: Res<Time>,
     mut laser_query: Query<(Entity, &Transform, &Sprite, With<EnemyLaser>)>,
     mut player_query: Query<(Entity, &Transform, &Sprite, With<Player>)>,
 ) {
@@ -71,6 +75,7 @@ fn laser_hit_player(
             );
 
             if let Some(_) = collision {
+                player_state.shot(time.seconds_since_startup());
                 commands.entity(laser_entity).despawn();
                 commands.entity(player_entity).despawn();
                 commands
@@ -113,6 +118,20 @@ fn player_fire(
         }
         if keyboard.just_released(KeyCode::Space) {
             *ready_fire = true;
+        }
+    }
+}
+
+fn player_respawn(
+    commands: Commands,
+    mut player_state: ResMut<PlayerState>,
+    materials: Res<Materials>,
+    time: Res<Time>,
+) {
+    if !player_state.alive {
+        if time.seconds_since_startup() >= player_state.last_shot_time + PLAYER_RESPAWN_DELAY {
+            player_state.spawn();
+            player_spawn(commands, materials);
         }
     }
 }

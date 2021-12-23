@@ -13,6 +13,7 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app_builder: &mut AppBuilder) {
         app_builder
+            .insert_resource(ActiveEnemies(0))
             .add_system(enemy_spawn.system())
             .add_system(laser_hit_enemy.system())
             .add_system_set(

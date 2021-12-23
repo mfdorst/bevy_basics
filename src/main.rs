@@ -8,7 +8,7 @@ mod resources;
 
 use bevy::prelude::*;
 use consts::*;
-use resources::{ActiveEnemies, Materials};
+use resources::Materials;
 
 fn main() {
     App::build()
@@ -19,7 +19,6 @@ fn main() {
             height: WINDOW_HEIGHT,
             ..Default::default()
         })
-        .insert_resource(ActiveEnemies(0))
         .add_plugins(DefaultPlugins)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(laser::LaserPlugin)
