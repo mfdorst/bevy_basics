@@ -23,7 +23,11 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn player_spawn(mut commands: Commands, materials: Res<Materials>) {
+fn player_spawn(
+    mut commands: Commands,
+    mut player_state: ResMut<PlayerState>,
+    materials: Res<Materials>,
+) {
     let bottom = -WINDOW_HEIGHT / 2.0;
     let material = materials.player.clone();
     let transform = Transform {
@@ -31,6 +35,7 @@ fn player_spawn(mut commands: Commands, materials: Res<Materials>) {
         scale: Vec3::new(0.5, 0.5, 1.0),
         ..Default::default()
     };
+    player_state.spawn();
     commands
         .spawn_bundle(SpriteBundle {
             material,
@@ -131,7 +136,7 @@ fn player_respawn(
     if !player_state.alive {
         if time.seconds_since_startup() >= player_state.last_shot_time + PLAYER_RESPAWN_DELAY {
             player_state.spawn();
-            player_spawn(commands, materials);
+            player_spawn(commands, player_state, materials);
         }
     }
 }
