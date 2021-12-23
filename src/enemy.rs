@@ -67,7 +67,6 @@ fn laser_hit_enemy(
                 enemy_transform.translation,
                 enemy_sprite.size * enemy_scale,
             );
-
             if let Some(_) = collision {
                 commands.entity(enemy_entity).despawn();
                 active_enemies.0 -= 1;
@@ -76,6 +75,10 @@ fn laser_hit_enemy(
                 commands
                     .spawn()
                     .insert(ExplosionToSpawn(enemy_transform.translation.clone()));
+
+                if active_enemies.0 == 0 {
+                    return;
+                }
             }
         }
     }
