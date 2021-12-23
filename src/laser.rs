@@ -31,7 +31,7 @@ fn enemy_laser_movement(
     for (laser_entity, Speed(speed), mut laser_transform, _) in query.iter_mut() {
         let translation = &mut laser_transform.translation;
         translation.y -= speed * TIME_STEP;
-        if translation.y < -WINDOW_HEIGHT / 2.0 {
+        if translation.y < -WINDOW_HEIGHT / 2.0 - 50.0 {
             commands.entity(laser_entity).despawn();
         }
     }

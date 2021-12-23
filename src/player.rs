@@ -1,7 +1,10 @@
-use super::components::{Player, PlayerLaser, PlayerReadyFire, Speed};
+use super::components::{
+    EnemyLaser, ExplosionToSpawn, Player, PlayerLaser, PlayerReadyFire, Speed,
+};
 use super::consts::*;
 use super::resources::Materials;
 use bevy::prelude::*;
+use bevy::sprite::collide_aabb::collide;
 
 pub struct PlayerPlugin;
 
@@ -13,6 +16,7 @@ impl Plugin for PlayerPlugin {
                 SystemStage::single(player_spawn.system()),
             )
             .add_system(player_movement.system())
+            .add_system(laser_hit_player.system())
             .add_system(player_fire.system());
     }
 }
@@ -49,6 +53,31 @@ fn player_movement(
             0.0
         };
         transform.translation.x += dir * speed * TIME_STEP;
+    }
+}
+
+fn laser_hit_player(
+    mut commands: Commands,
+    mut laser_query: Query<(Entity, &Transform, &Sprite, With<EnemyLaser>)>,
+    mut player_query: Query<(Entity, &Transform, &Sprite, With<Player>)>,
+) {
+    for (laser_entity, laser_xform, laser_sprite, _) in laser_query.iter_mut() {
+        for (player_entity, player_xform, player_sprite, _) in player_query.iter_mut() {
+            let collision = collide(
+                laser_xform.translation,
+                laser_sprite.size * Vec2::from(laser_xform.scale),
+                player_xform.translation,
+                player_sprite.size * Vec2::from(player_xform.scale),
+            );
+
+            if let Some(_) = collision {
+                commands.entity(laser_entity).despawn();
+                commands.entity(player_entity).despawn();
+                commands
+                    .spawn()
+                    .insert(ExplosionToSpawn(player_xform.translation.clone()));
+            }
+        }
     }
 }
 

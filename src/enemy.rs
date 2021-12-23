@@ -6,6 +6,7 @@ use bevy::prelude::*;
 use bevy::sprite::collide_aabb::collide;
 use rand::thread_rng;
 use rand::Rng;
+use std::f32::consts::PI;
 
 pub struct EnemyPlugin;
 
@@ -90,7 +91,7 @@ fn enemy_fire(
             .spawn_bundle(SpriteBundle {
                 material: materials.enemy_laser.clone(),
                 transform: Transform {
-                    scale: Vec3::new(0.5, -0.5, 1.0),
+                    rotation: Quat::from_rotation_z(PI),
                     ..transform
                 },
                 ..Default::default()
