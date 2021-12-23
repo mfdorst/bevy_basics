@@ -44,8 +44,9 @@ fn setup(
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 4, 4);
     commands.insert_resource(Materials {
         player: materials.add(asset_server.load(PLAYER_A_SPRITE).into()),
-        laser: materials.add(asset_server.load(LASER_A_SPRITE).into()),
+        player_laser: materials.add(asset_server.load(LASER_A_SPRITE).into()),
         enemy: materials.add(asset_server.load(ENEMY_SPRITE).into()),
+        enemy_laser: materials.add(asset_server.load(LASER_B_SPRITE).into()),
         explosion: texture_atlases.add(texture_atlas),
     });
 

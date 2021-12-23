@@ -1,6 +1,7 @@
-use super::components::{Enemy, ExplosionToSpawn, Laser};
+use super::components::{Enemy, EnemyLaser, ExplosionToSpawn, PlayerLaser, Speed};
 use super::consts::*;
 use super::resources::{ActiveEnemies, Materials};
+use bevy::core::FixedTimestep;
 use bevy::prelude::*;
 use bevy::sprite::collide_aabb::collide;
 use rand::thread_rng;
@@ -12,7 +13,12 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app_builder: &mut AppBuilder) {
         app_builder
             .add_system(enemy_spawn.system())
-            .add_system(laser_hit_enemy.system());
+            .add_system(laser_hit_enemy.system())
+            .add_system_set(
+                SystemSet::new()
+                    .with_run_criteria(FixedTimestep::step(1.0))
+                    .with_system(enemy_fire.system()),
+            );
     }
 }
 
@@ -46,7 +52,7 @@ fn enemy_spawn(
 
 fn laser_hit_enemy(
     mut commands: Commands,
-    mut laser_query: Query<(Entity, &Transform, &Sprite, With<Laser>)>,
+    mut laser_query: Query<(Entity, &Transform, &Sprite, With<PlayerLaser>)>,
     mut enemy_query: Query<(Entity, &Transform, &Sprite, With<Enemy>)>,
     mut active_enemies: ResMut<ActiveEnemies>,
 ) {
@@ -71,5 +77,22 @@ fn laser_hit_enemy(
                     .insert(ExplosionToSpawn(enemy_transform.translation.clone()));
             }
         }
+    }
+}
+
+fn enemy_fire(
+    mut commands: Commands,
+    materials: Res<Materials>,
+    query: Query<&Transform, With<Enemy>>,
+) {
+    for &transform in query.iter() {
+        commands
+            .spawn_bundle(SpriteBundle {
+                material: materials.enemy_laser.clone(),
+                transform,
+                ..Default::default()
+            })
+            .insert(EnemyLaser)
+            .insert(Speed(500.0));
     }
 }

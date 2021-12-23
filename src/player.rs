@@ -1,4 +1,4 @@
-use super::components::{Laser, Player, PlayerReadyFire, Speed};
+use super::components::{Player, PlayerLaser, PlayerReadyFire, Speed};
 use super::consts::*;
 use super::resources::Materials;
 use bevy::prelude::*;
@@ -66,7 +66,7 @@ fn player_fire(
             let mut spawn_laser = |x_offset| {
                 commands
                     .spawn_bundle(SpriteBundle {
-                        material: materials.laser.clone(),
+                        material: materials.player_laser.clone(),
                         transform: Transform {
                             translation: Vec3::new(x + x_offset, y + 20.0, 0.0),
                             scale: Vec3::new(0.5, 0.5, 1.0),
@@ -74,7 +74,7 @@ fn player_fire(
                         },
                         ..Default::default()
                     })
-                    .insert(Laser)
+                    .insert(PlayerLaser)
                     .insert(Speed(500.0));
             };
             let x_offset = 144.0 / 4.0 - 5.0;
