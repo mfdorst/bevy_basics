@@ -89,7 +89,10 @@ fn enemy_fire(
         commands
             .spawn_bundle(SpriteBundle {
                 material: materials.enemy_laser.clone(),
-                transform,
+                transform: Transform {
+                    scale: Vec3::new(0.5, -0.5, 1.0),
+                    ..transform
+                },
                 ..Default::default()
             })
             .insert(EnemyLaser)
