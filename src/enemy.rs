@@ -16,6 +16,7 @@ impl Plugin for EnemyPlugin {
             .insert_resource(ActiveEnemies(0))
             .add_system(enemy_spawn.system())
             .add_system(laser_hit_enemy.system())
+            .add_system(enemy_move.system())
             .add_system_set(
                 SystemSet::new()
                     .with_run_criteria(FixedTimestep::step(1.0))
@@ -46,7 +47,8 @@ fn enemy_spawn(
                 },
                 ..Default::default()
             })
-            .insert(Enemy);
+            .insert(Enemy)
+            .insert(Speed(250.0));
 
         *active_enemies += 1;
     }
@@ -102,5 +104,41 @@ fn enemy_fire(
             })
             .insert(EnemyLaser)
             .insert(Speed(500.0));
+    }
+}
+
+fn enemy_move(time: Res<Time>, mut query: Query<(&mut Transform, &Speed, With<Enemy>)>) {
+    let now = time.seconds_since_startup() as f32;
+    for (mut xform, speed, _) in query.iter_mut() {
+        let max_distance = **speed * TIME_STEP;
+        let x_origin = xform.translation.x;
+        let y_origin = xform.translation.y;
+        let (x_offset, y_offset) = (0.0, 100.0);
+        let (x_radius, y_radius) = (150.0, 100.0);
+        let angle = **speed * TIME_STEP * now % 360.0 / PI;
+        let x_dest = x_radius * angle.cos() + x_offset;
+        let y_dest = y_radius * angle.sin() + y_offset;
+        let dx = x_origin - x_dest;
+        let dy = y_origin - y_dest;
+        let distance = (dx * dx + dy * dy).sqrt();
+        let distance_ratio = if distance == 0.0 {
+            0.0
+        } else {
+            max_distance / distance
+        };
+        let x = x_origin - dx * distance_ratio;
+        let x = if x > 0.0 {
+            x.max(x_dest)
+        } else {
+            x.min(x_dest)
+        };
+        let y = y_origin - dy * distance_ratio;
+        let y = if y > 0.0 {
+            y.max(y_dest)
+        } else {
+            y.min(y_dest)
+        };
+        xform.translation.x = x;
+        xform.translation.y = y;
     }
 }
